@@ -644,7 +644,7 @@ public class ScheduleEntry
                     // send rsvp rescinded confirmation to the user
                     if (Main.getScheduleManager().isRSVPConfirmationsEnabled(chanId))
                     {
-                        String content = "You have rescinded your RSVP(s) for **" + this.getTitle() + "**";
+                        String content = "Bạn đã xoá lựa chọn của mình cho **" + this.getTitle() + "**";
                         MessageUtilities.sendPrivateMsg(content, event.getUser(), null);
                     }
 
@@ -698,8 +698,8 @@ public class ScheduleEntry
                         // send rsvp confirmation to the user
                         if (Main.getScheduleManager().isRSVPConfirmationsEnabled(chanId))
                         {
-                            String content = "You " + (hasChangedRSVP ? "have changed your RSVP to":"have RSVPed") +
-                                    " ``" + name + "`` for **" + this.getTitle() + "**";
+                            String content = "Bạn " + (hasChangedRSVP ? "đã thay đổi lựa chọn thành":"đã lựa chọn") +
+                                    " ``" + name + "`` cho **" + this.getTitle() + "**";
                             MessageUtilities.sendPrivateMsg(content, event.getUser(), null);
                         }
 

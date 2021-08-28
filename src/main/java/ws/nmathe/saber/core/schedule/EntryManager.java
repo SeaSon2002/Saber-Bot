@@ -58,15 +58,15 @@ public class EntryManager
         // updates events with times >24h
         updateDisplayScheduler.scheduleWithFixedDelay(
                 new EntryProcessor(type.UPDATE3),
-                12, 6, TimeUnit.HOURS);
+                1, 1, TimeUnit.HOURS);
         // updates events with times >1 hour (but <24h)
         updateDisplayScheduler.scheduleWithFixedDelay(
                 new EntryProcessor(type.UPDATE2),
-                30, 15, TimeUnit.MINUTES);
+                2, 2, TimeUnit.MINUTES);
         // update events with times <1 hour
-        //updateDisplayScheduler.scheduleWithFixedDelay(
-        //        new EntryProcessor(type.UPDATE1),
-        //        5, 3, TimeUnit.MINUTES);
+        updateDisplayScheduler.scheduleWithFixedDelay(
+                new EntryProcessor(type.UPDATE1),
+                1, 1, TimeUnit.MINUTES);
     }
 
     /**

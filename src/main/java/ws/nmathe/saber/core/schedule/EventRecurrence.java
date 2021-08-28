@@ -287,19 +287,19 @@ public class EventRecurrence
 
         // no repeat
         if (recurrence == 0)
-            return "once";
+            return "không lặp lại";
 
         // every day
         if ((mode == WEEK_MODE && data == 0b1111111)
                 || (mode==DAILY_MODE && data==1))
-            return "every day";
+            return "hàng ngày";
 
         // on interval days
         if (mode == DAILY_MODE)
         {
             if (data == 7)
-                return "every week";
-            return "every "+(data>spellout.length ? data : spellout[data-1])+" days";
+                return "hàng tuần";
+            return "mỗi "+(data>spellout.length ? data : spellout[data-1])+" ngày";
         }
 
         // minute repeat
@@ -308,18 +308,18 @@ public class EventRecurrence
             if (data%60 == 0)
             {
                 int hours = data/60;
-                if (data == 60) return "every hour";
-                else return "every "+(hours<=spellout.length ? spellout[hours-1]:hours)+" hours";
+                if (data == 60) return "hàng giờ";
+                else return "mỗi "+(hours<=spellout.length ? spellout[hours-1]:hours)+" giờ";
             }
             else
             {
-                return "every "+data+" minutes";
+                return "mỗi "+data+" phút";
             }
         }
 
         // yearly
         if (mode == YEAR_MODE && data == 1)
-            return "every year";
+            return "hàng năm";
 
 
         // monthly on weekday
@@ -368,7 +368,7 @@ public class EventRecurrence
             }
             else
             {
-                str = new StringBuilder("weekly on ");
+                str = new StringBuilder("hàng tuần vào ");
             }
             for(int j=0; data!=0; j++, data>>=1)
             {

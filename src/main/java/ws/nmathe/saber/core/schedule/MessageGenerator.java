@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class MessageGenerator
 {
-    private static String DEFAULT_URL = "https://nmathe.ws/bots/saber";
+    private static String DEFAULT_URL = "https://youtu.be/dQw4w9WgXcQ";
     private static String ICON_URL = "https://upload.wikimedia.org/wikipedia/en/8/8d/Calendar_Icon.png";
 
     /**
@@ -177,15 +177,15 @@ public class MessageGenerator
     {
         // create the first line of the body
         String timeLines = generateTimeLines(se);
-
+        String newtimer = newtimer(se);
         // timezone and repeat information
         StringBuilder repeatLine = new StringBuilder()
-                .append("[")
-                .append(se.getStart().getZone().getDisplayName(TextStyle.SHORT, Locale.ENGLISH))
-                .append("](")
+                .append("[⏰]")
+                .append(newtimer)
+                .append("\n")
+                .append("> ")
                 .append(se.getRecurrence().toString())
-                .append(")\n");
-
+                .append("\n");
         // expiration information
         String expirationLine = generateExpirationLine(se);
 
@@ -327,7 +327,7 @@ public class MessageGenerator
                     .append(" ")
                     .append(end.format(DateTimeFormatter.ofPattern(timeFormatter)));
         }
-        timeLine.append("> ");
+        timeLine.append(" > ");
         // add zone information
         if (zone != null)
         {
@@ -401,7 +401,7 @@ public class MessageGenerator
             int minutesTil = (int)Math.ceil((double)timeTil/(60));
             if (minutesTil <= 1)
             {
-                timer.append(useShort ? "<1m" : "in a minute");
+                timer.append(useShort ? "<1m" : "sau 1 phút");
             }
             else
             {
@@ -409,9 +409,9 @@ public class MessageGenerator
                     timer.append(minutesTil)
                             .append("m");
                 else
-                    timer.append("in ")
+                    timer.append("sau ")
                             .append(minutesTil)
-                            .append(" minutes");
+                            .append(" phút");
             }
         }
         else if (timeTil < 24 * 60 * 60)
@@ -419,7 +419,7 @@ public class MessageGenerator
             int hoursTil = (int)Math.ceil((double)timeTil/(60*60));
             if (hoursTil <= 1)
             {
-                timer.append(useShort ? "<1h" : "in the hour");
+                timer.append(useShort ? "<1h" : "sau 1 giờ");
             }
             else
             {
@@ -427,9 +427,9 @@ public class MessageGenerator
                     timer.append(hoursTil)
                             .append("h");
                 else
-                    timer.append("in ")
+                    timer.append("sau ")
                             .append(hoursTil)
-                            .append(" hours");
+                            .append(" giờ");
             }
         }
         else
@@ -439,7 +439,7 @@ public class MessageGenerator
                     time.truncatedTo(ChronoUnit.DAYS));
             if (daysTil <= 1)
             {
-                timer.append(useShort ? "<"+daysTil+"d" : "in one day");
+                timer.append(useShort ? "<"+daysTil+"d" : "sau 1 ngày");
             }
             else
             {
@@ -447,7 +447,7 @@ public class MessageGenerator
                     timer.append(daysTil)
                             .append("d");
                 else
-                    timer.append("in ").append(daysTil).append(" days");
+                    timer.append("sau ").append(daysTil).append(" ngày");
             }
         }
     }
@@ -551,5 +551,14 @@ public class MessageGenerator
 
         // return the color (default DARK_GRAY)
         return color;
+    }
+
+        private static String newtimer(ScheduleEntry se)
+    {
+        StringBuilder line = new StringBuilder();
+                line.append("[Bắt đầu ");
+                genTimerHelper(se.getStart(), line, true, false);
+                line.append("]");
+                return line.toString();
     }
 }
