@@ -699,7 +699,7 @@ public class ScheduleEntry
                         if (Main.getScheduleManager().isRSVPConfirmationsEnabled(chanId))
                         {
                             String content = "Bạn " + (hasChangedRSVP ? "đã thay đổi lựa chọn thành":"đã lựa chọn") +
-                                    " ``" + name + "`` cho **" + this.getTitle() + "**";
+                                    " `" + name + "` cho **" + this.getTitle() + "**";
                             MessageUtilities.sendPrivateMsg(content, event.getUser(), null);
                         }
 
