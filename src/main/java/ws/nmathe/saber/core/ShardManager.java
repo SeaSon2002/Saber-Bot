@@ -60,7 +60,7 @@ public class ShardManager
             List<String> playing = Main.getBotSettingsManager().getNowPlayingList();
             if(!playing.isEmpty())
             {
-                this.builder.setActivity(Activity.playing(playing.get(0)));
+                this.builder.setActivity(Activity.watching(playing.get(0)));
             }
 
             // EventListener handles all types of bot events
