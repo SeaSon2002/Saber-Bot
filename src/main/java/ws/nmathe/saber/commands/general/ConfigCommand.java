@@ -5,11 +5,13 @@ import com.google.api.services.calendar.Calendar;
 import com.vdurmont.emoji.EmojiManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.bson.Document;
 import ws.nmathe.saber.Main;
 import ws.nmathe.saber.commands.Command;
 import ws.nmathe.saber.commands.CommandInfo;
+import ws.nmathe.saber.core.command.CommandParser.EventCompat;
 import ws.nmathe.saber.core.google.GoogleAuth;
 import ws.nmathe.saber.core.schedule.EntryManager;
 import ws.nmathe.saber.core.schedule.ScheduleEntry;
@@ -109,7 +111,7 @@ public class ConfigCommand implements Command
     }
 
     @Override
-    public String verify(String prefix, String[] args, MessageReceivedEvent event)
+    public String verify(String prefix, String[] args, EventCompat event)
     {
         String cmd = prefix + this.name();
         int index = 0;
@@ -593,7 +595,7 @@ public class ConfigCommand implements Command
     }
 
     @Override
-    public void action(String head, String[] args, MessageReceivedEvent event)
+    public void action(String head, String[] args, EventCompat event)
     {
         int index = 0;
         String cId = args[index].replaceAll("[^\\d]","");
@@ -1309,10 +1311,10 @@ public class ConfigCommand implements Command
                         }
                         else
                         {
-                            Emote emote = null;
+                            Emoji emote = null;
                             for(JDA shard : Main.getShardManager().getShards())
                             {
-                                emote = shard.getEmoteById(key);
+                                emote = shard.getEmojiById(key);
                                 if(emote != null) break;
                             }
                             if(emote!=null)

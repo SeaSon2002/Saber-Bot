@@ -4,6 +4,8 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import java.util.function.Consumer;
 
@@ -44,9 +46,10 @@ public class MessageUtilities
     }
 
     /// version which takes a message rather than a string
-    public static void sendMsg(Message message, MessageChannel chan, Consumer<Message> action )
+    public static void sendMsg(MessageCreateData message, MessageChannel chan, Consumer<Message> action )
     {
-        if (message.getContentRaw().isEmpty() && message.getEmbeds().isEmpty()) return;
+        if (message == null) return;
+        if (message.getContent().isEmpty() && message.getEmbeds().isEmpty()) return;
 
         try
         {
@@ -66,9 +69,10 @@ public class MessageUtilities
     }
 
     /// customizable error handling (used by list command temporarily)
-    public static void sendMsg(Message message, MessageChannel chan, Consumer<Message> action, Consumer<Throwable> error )
+    public static void sendMsg(MessageCreateData message, MessageChannel chan, Consumer<Message> action, Consumer<Throwable> error )
     {
-        if (message.getContentRaw().isEmpty() && message.getEmbeds().isEmpty()) return;
+        if (message == null) return;
+        if (message.getContent().isEmpty() && message.getEmbeds().isEmpty()) return;
 
         try
         {
@@ -81,9 +85,10 @@ public class MessageUtilities
     }
 
     /// blocking version
-    public static Message sendMsg(Message message, MessageChannel chan)
+    public static Message sendMsg(MessageCreateData message, MessageChannel chan)
     {
-        if (message.getContentRaw().isEmpty() && message.getEmbeds().isEmpty()) return null;
+        if (message == null) return null;
+        if (message.getContent().isEmpty() && message.getEmbeds().isEmpty()) return null;
 
         try
         {
@@ -127,9 +132,10 @@ public class MessageUtilities
      * @param msg the message object to edit
      * @param action a non null Consumer will do operations on the results returned
      */
-    public static void editMsg(Message newMsg, Message msg, Consumer<Message> action )
+    public static void editMsg(MessageEditData newMsg, Message msg, Consumer<Message> action )
     {
-        if (newMsg.getContentRaw().isEmpty() && newMsg.getEmbeds().isEmpty()) return;
+        if (newMsg == null) return;
+        if (newMsg.getContent().isEmpty() && newMsg.getEmbeds().isEmpty()) return;
 
         try
         {
@@ -149,9 +155,10 @@ public class MessageUtilities
     }
 
     // blocking
-    public static Message editMsg(Message newMsg, Message msg)
+    public static Message editMsg(MessageEditData newMsg, Message msg)
     {
-        if (newMsg.getContentRaw().isEmpty() && newMsg.getEmbeds().isEmpty()) return null;
+        if (newMsg == null) return null;
+        if (newMsg.getContent().isEmpty() && newMsg.getEmbeds().isEmpty()) return null;
 
         try
         {

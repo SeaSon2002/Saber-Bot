@@ -1,9 +1,18 @@
 package ws.nmathe.saber.core.command;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.Message.Interaction;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import ws.nmathe.saber.Main;
 import ws.nmathe.saber.commands.Command;
 import ws.nmathe.saber.commands.admin.*;
@@ -29,6 +38,8 @@ public class CommandHandler
     private final RateLimiter rateLimiter = new RateLimiter();
     private final HashMap<String, Command> commands;         // maps Command to invoke string
     private final HashMap<String, Command> adminCommands;    // ^^ but for admin commands
+    public final String argName = "args";
+    public final String argString = "required command arguments";
     private boolean initialized;
 
     public CommandHandler()
@@ -70,9 +81,71 @@ public class CommandHandler
         adminCommands.put((new ReloadSettingsCommand()).name(), new ReloadSettingsCommand());
         adminCommands.put((new ClearLocksCommand()).name(), new ClearLocksCommand());
         adminCommands.put((new ShardsCommand()).name(), new ShardsCommand());
-        adminCommands.put((new AvatarCommand()).name(), new AvatarCommand());
 
         initialized = true;
+    }
+
+    public void updateCommands(JDA jda)
+    {
+        jda.updateCommands()
+        .addCommands(Commands.slash("help", "DM the user bot info")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("init", "Create a schedule")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("create", "Add event to schedule")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("delete", "Delete an event")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("edit", "Modify an event")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("config", "Configure a schedule")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("timezones", "List valid timezones")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("test", "Test event announcement")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("sort", "Sort events on schedule")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("sync", "Synchronize schedule with Google Calendar")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("events", "List all events")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("schedules", "List all schedules")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("announcements", "List upcoming announcements")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("guild", "Configure guild options")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("skip", "Skip an event")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("list", "Show member RSVPs")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("manage", "Manage member RSVPs")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("purge", "Bulk delete messages")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .addCommands(Commands.slash("diagnose", "Debug permision issues")
+                        .addOption(OptionType.STRING, this.argName, this.argString)
+                    )
+        .queue();
     }
 
     /**
@@ -94,7 +167,7 @@ public class CommandHandler
             }
             else
             {   // send message to channel the message was received on
-                MessageUtilities.sendMsg(msg, event.getTextChannel(), null);
+                MessageUtilities.sendMsg(msg, event.getChannel(), null);
             }
             return;
         }
@@ -132,20 +205,82 @@ public class CommandHandler
                 }
                 return;
             }
-            handleGeneralCommand(cc);
+            handleGeneralCommand(cc, null);
         }
         else if (type == 1)
         {
             handleAdminCommand(cc);
         }
+    }
 
+    /**
+     * Processes a MessageReceivedEvent into a command using the command parser
+     * and executes the command
+     * @param event (MessageReceivedEvent) containing the command
+     * @param type (Integer) the type of command, 0 for public, 1 for admin
+     * @param prefix (String) the prefix of the command (depends on guild)
+     */
+    public void handleCommand(SlashCommandInteractionEvent event, Integer type, String prefix)
+    {
+        SlashCommandInteraction interaction = event.getInteraction();
+
+        // if the command handler has not yet been initialized, send a special error
+        if (!initialized)
+        {
+            String msg = "I have not yet finished booting up! Please try again in a moment.";
+            interaction.reply(msg).queue();
+            return;
+        }
+
+        // otherwise handle the received command
+        CommandParser.CommandContainer cc = commandParser.parse(event, prefix);
+        if (type == 0)
+        {
+            String identifier = event.getUser().getId();
+            if (event.getChannel().getType().equals(ChannelType.TEXT))
+                identifier +=  event.getGuild().getId();
+            if (rateLimiter.check(identifier))
+            {
+                String userMsg = "You have hit the ratelimit, please wait a few minutes before retrying your command.";
+                interaction.reply(userMsg).queue();;
+
+                String alert;
+                if (event.getChannelType().equals(ChannelType.PRIVATE))
+                {
+                    alert = "@" + event.getUser().getName() +
+                            " [" + event.getUser().getId() + "] was rate limited using the '" +
+                            cc.invoke + "' command via DM!";
+                }
+                else
+                {
+                    alert = "@" + event.getUser().getName() +
+                            " [" + event.getUser().getId() + "] was rate limited on '" +
+                            event.getGuild().getName() +"' [" + event.getGuild().getId() + "] using the '" +
+                            cc.invoke + "' command!";
+                }
+
+                // alert admin
+                Logging.warn(this.getClass(), alert);
+                User admin = event.getJDA().getUserById(Main.getBotSettingsManager().getAdminId());
+                if(admin != null)
+                {
+                    MessageUtilities.sendPrivateMsg(alert, admin, null);
+                }
+                return;
+            }
+            handleGeneralCommand(cc, interaction.deferReply());
+        }
+        else if (type == 1)
+        {
+            handleAdminCommand(cc);
+        }
     }
 
     /**
      * Executes a public/general command
      * @param cc (CommandContainer) holding the command information
      */
-    private void handleGeneralCommand(CommandParser.CommandContainer cc)
+    private void handleGeneralCommand(CommandParser.CommandContainer cc, ReplyCallbackAction action)
     {
         // if the invoking command appears in commands
         if(commands.containsKey(cc.invoke))
@@ -162,8 +297,8 @@ public class CommandHandler
                         {
                             commands.get(cc.invoke).action(cc.prefix, cc.args, cc.event);
 
-                            String info = "Executed command [" + cc.event.getMessage().getContentRaw() +
-                                    "] by " + cc.event.getAuthor().getName() + " [" + cc.event.getMessage().getAuthor().getId()+ "]";
+                            String info = "Executed command [" + cc.raw +
+                                    "] by " + cc.event.getAuthor().getName() + " [" + cc.event.getAuthor().getId()+ "]";
                             if(cc.event.getGuild() != null)
                                 info += " on " + cc.event.getGuild().getName()+ " [" + cc.event.getGuild().getId() + "]";
                             Logging.cmd(this.getClass(), info);
@@ -172,13 +307,16 @@ public class CommandHandler
                         {
                             Logging.exception(commands.get(cc.invoke).getClass(), e);
                         }
+                        String sucString = "Completed execution of " + cc.invoke + " command.";
+                        action.addContent(sucString).queue();
                     });
                 }
                 // otherwise send error message
                 else
                 {
                     String msg = "**Error** : " + err;
-                    MessageUtilities.sendMsg(msg, cc.event.getChannel(), null);
+                    action.addContent(msg).queue();
+                    //MessageUtilities.sendMsg(msg, cc.event.getChannel(), null);
                 }
             }
             catch(Exception e)
@@ -194,7 +332,8 @@ public class CommandHandler
         else
         {   // command is not a valid command
             String msg = "**" + cc.invoke + "** is not a command!";
-            MessageUtilities.sendMsg(msg, cc.event.getChannel(), null);
+            action.addContent(msg).queue();
+            //MessageUtilities.sendMsg(msg, cc.event.getChannel(), null);
         }
     }
 

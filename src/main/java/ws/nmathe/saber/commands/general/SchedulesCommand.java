@@ -1,15 +1,17 @@
 package ws.nmathe.saber.commands.general;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import ws.nmathe.saber.Main;
 import ws.nmathe.saber.commands.Command;
 import ws.nmathe.saber.commands.CommandInfo;
+import ws.nmathe.saber.core.command.CommandParser.EventCompat;
 import ws.nmathe.saber.core.schedule.ScheduleEntry;
 import ws.nmathe.saber.utils.MessageUtilities;
 import ws.nmathe.saber.utils.ParsingUtilities;
@@ -48,13 +50,13 @@ public class SchedulesCommand implements Command
     }
 
     @Override
-    public String verify(String prefix, String[] args, MessageReceivedEvent event)
+    public String verify(String prefix, String[] args, EventCompat event)
     {
         return "";
     }
 
     @Override
-    public void action(String prefix, String[] args, MessageReceivedEvent event)
+    public void action(String prefix, String[] args, EventCompat event)
     {
         Guild guild = event.getGuild();
         List<String> scheduleIds = Main.getScheduleManager().getSchedulesForGuild(guild.getId());
@@ -79,7 +81,7 @@ public class SchedulesCommand implements Command
                                 .setTitle(title)
                                 .setFooter(footer, null).build();
 
-        Message message = new MessageBuilder().setEmbed(embed).build();           // build message
-        MessageUtilities.sendMsg(message, event.getTextChannel(), null);    // send message
+        MessageCreateData message = new MessageCreateBuilder().setEmbeds(embed).build();           // build message
+        MessageUtilities.sendMsg(message, event.getChannel(), null);    // send message
     }
 }

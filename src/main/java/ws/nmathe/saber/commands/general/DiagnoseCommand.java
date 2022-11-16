@@ -7,6 +7,7 @@ import org.bson.Document;
 import ws.nmathe.saber.Main;
 import ws.nmathe.saber.commands.Command;
 import ws.nmathe.saber.commands.CommandInfo;
+import ws.nmathe.saber.core.command.CommandParser.EventCompat;
 import ws.nmathe.saber.utils.MessageUtilities;
 
 import java.util.List;
@@ -43,7 +44,7 @@ public class DiagnoseCommand implements Command
     }
 
     @Override
-    public String verify(String prefix, String[] args, MessageReceivedEvent event)
+    public String verify(String prefix, String[] args, EventCompat event)
     {
         if (args.length > 0)
         {
@@ -56,7 +57,7 @@ public class DiagnoseCommand implements Command
     }
 
     @Override
-    public void action(String prefix, String[] args, MessageReceivedEvent event)
+    public void action(String prefix, String[] args, EventCompat event)
     {
         Member saber = event.getGuild().getMember(event.getJDA().getSelfUser());
         StringBuilder builder = new StringBuilder("```diff\n");
@@ -94,8 +95,8 @@ public class DiagnoseCommand implements Command
             // check permissions on the control channel
             if (controlChannel != null)
             {
-                boolean read = saber.hasPermission(controlChannel, Permission.MESSAGE_READ);
-                boolean write = saber.hasPermission(controlChannel, Permission.MESSAGE_WRITE);
+                boolean read = saber.hasPermission(controlChannel, Permission.MESSAGE_HISTORY);
+                boolean write = saber.hasPermission(controlChannel, Permission.MESSAGE_SEND);
                 if (!read || !write)
                 {
                     builder.append("- I do not have the permissions to ");
@@ -120,19 +121,19 @@ public class DiagnoseCommand implements Command
                 builder.append("- I do not have the permissions to create new channels!\n");
 
             // 3) check local channel permissions
-            boolean write = saber.hasPermission(event.getTextChannel(), Permission.MESSAGE_WRITE);
-            if (!write)
-            {
-                builder.append("- I do not have the permissions to send messages to #")
-                        .append(event.getTextChannel().getName())
-                        .append("!\n");
-            }
-            else
-            {
-                boolean embed = saber.hasPermission(event.getTextChannel(), Permission.MESSAGE_EMBED_LINKS);
-                if (!embed)
-                    builder.append("- I cannot send messages with embeds to this channel!\n");
-            }
+            //boolean write = saber.hasPermission(event.getGuildChannel(), Permission.MESSAGE_SEND);
+            //if (!write)
+            //{
+            //    builder.append("- I do not have the permissions to send messages to #")
+            //            .append(event.getGuildChannel().getName())
+            //            .append("!\n");
+            //}
+            //else
+            //{
+            //    boolean embed = saber.hasPermission(event.getGuildChannel(), Permission.MESSAGE_EMBED_LINKS);
+            //    if (!embed)
+            //        builder.append("- I cannot send messages with embeds to this channel!\n");
+            //}
         }
         else
         {   // diagnose a schedule or channel
@@ -151,17 +152,10 @@ public class DiagnoseCommand implements Command
                 {
                     builder.append("+ That channel is a schedule.\n");
 
-                    boolean read = saber.hasPermission(channel, Permission.MESSAGE_READ);
                     boolean history = saber.hasPermission(channel, Permission.MESSAGE_HISTORY);
-                    if (!read || !history)
+                    if (!history)
                     {
-                        if (read)
-                        {
-                            builder.append("- I cannot read message history on #")
-                                    .append(channel.getName())
-                                    .append("!\n");
-                        }
-                        else if (!history)
+                        if (!history)
                         {
                             builder.append("- I cannot read messages or the message history on #")
                                     .append(channel.getName())
@@ -220,7 +214,7 @@ public class DiagnoseCommand implements Command
                 else
                 {
                     builder.append("+ That channel is not a schedule.\n");
-                    boolean read = saber.hasPermission(channel, Permission.MESSAGE_READ);
+                    boolean read = saber.hasPermission(channel, Permission.MESSAGE_HISTORY);
                     if (!read)
                     {
                         builder.append("- I cannot read messages on #")
@@ -230,7 +224,7 @@ public class DiagnoseCommand implements Command
                 }
 
                 // can Saber write messages with embeds to that channel?
-                boolean write = saber.hasPermission(channel, Permission.MESSAGE_WRITE);
+                boolean write = saber.hasPermission(channel, Permission.MESSAGE_SEND);
                 boolean embed = saber.hasPermission(channel, Permission.MESSAGE_EMBED_LINKS);
                 if (!write)
                 {
@@ -262,20 +256,20 @@ public class DiagnoseCommand implements Command
         builder.append("```");
 
         // send the diagnosis message
-        if (saber.hasPermission(event.getTextChannel(), Permission.MESSAGE_WRITE))
-        {   // only if Saber can write to the channel
-            MessageUtilities.sendMsg(builder.toString(), event.getTextChannel(), null);
-        }
-        else
-        {   // attempt to DM the user the diagnosis
+        //if (saber.hasPermission(event.getGuildChannel(), Permission.MESSAGE_SEND))
+        //{   // only if Saber can write to the channel
+        //    MessageUtilities.sendMsg(builder.toString(), event.getChannel(), null);
+        //}
+        //else
+        //{   // attempt to DM the user the diagnosis
             MessageUtilities.sendPrivateMsg(builder.toString(), event.getAuthor(), null);
-        }
+        //}
     }
 
     /**
      * evaluates if an announcement channel can be accessed
      */
-    private TextChannel helper(StringBuilder builder, MessageReceivedEvent event, String identifier, String type, Member saber)
+    private TextChannel helper(StringBuilder builder, EventCompat event, String identifier, String type, Member saber)
     {
         TextChannel channel = null;
         if (identifier.matches("[\\d]+"))
@@ -292,7 +286,7 @@ public class DiagnoseCommand implements Command
         }
         if (channel != null)
         {
-            boolean write = saber.hasPermission(channel, Permission.MESSAGE_WRITE);
+            boolean write = saber.hasPermission(channel, Permission.MESSAGE_SEND);
             if (write)
             {
                 builder.append("+ I will send ")
